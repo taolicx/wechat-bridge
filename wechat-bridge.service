@@ -1,0 +1,27 @@
+[Unit]
+Description=WeChat iLink bridge daemon
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/hatch/wechat-bridge
+ExecStart=/home/hatch/wechat-bridge/.venv/bin/python3 /home/hatch/wechat-bridge/daemon.py
+# Egress needs the runtime proxy, but the proxy accepts connections without
+# credentials (auth in the URL is per-exec-session and expires in minutes,
+# so it must NOT be baked in here). No-auth proxy works from this VM.
+Environment="http_proxy=http://hatch-egress-proxy:3128"
+Environment="https_proxy=http://hatch-egress-proxy:3128"
+Environment="HTTP_PROXY=http://hatch-egress-proxy:3128"
+Environment="HTTPS_PROXY=http://hatch-egress-proxy:3128"
+Environment="no_proxy=localhost,127.0.0.1,::1"
+Environment="NO_PROXY=localhost,127.0.0.1,::1"
+Restart=on-failure
+RestartSec=10
+StandardOutput=append:/home/hatch/wechat-bridge/logs-daemon.txt
+StandardError=append:/home/hatch/wechat-bridge/logs-daemon.txt
+KillMode=control-group
+TimeoutStopSec=10
+
+[Install]
+WantedBy=default.target
